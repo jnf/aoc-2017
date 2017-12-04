@@ -28,16 +28,16 @@ defmodule D4 do
   """
   def valid?(line, opts \\ %{}) do
     config = %{sort: false} |> Map.merge(opts)
-    line |>
-      String.split(~r/\s+/, trim: true) |>
-      (fn (l) -> if(config.sort, do: Enum.map(l, &sorter/1), else: l) end).() |>
-      (fn (l) -> length(Enum.uniq(l)) === length l end).()
+    line
+      |> String.split(~r/\s+/, trim: true)
+      |> (fn (l) -> if(config.sort, do: Enum.map(l, &sorter/1), else: l) end).()
+      |> (fn (l) -> length(Enum.uniq(l)) === length l end).()
   end
 
   defp sorter(word) do
-    word |>
-      String.split(~r{}, trim: true) |>
-      Enum.sort |>
-      to_string
+    word
+      |> String.split(~r{}, trim: true)
+      |> Enum.sort
+      |> to_string
   end
 end
