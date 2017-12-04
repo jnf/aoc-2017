@@ -10,7 +10,8 @@ defmodule D4 do
     config = %{sort: false } |> Map.merge(opts)
     File.stream!(file, [:utf8])
       |> Stream.map(&(valid?(&1, config)))
-      |> Enum.reduce(0, fn(valid, acc) -> acc + (if(valid, do: 1, else: 0)) end)
+      |> Enum.filter(&(&1))
+      |> length
   end
 
   @doc """
