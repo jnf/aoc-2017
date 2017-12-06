@@ -4,47 +4,30 @@ class D6
     @banks = prep_banks starting_allocation
     @cycles = 0
     @patterns = {}
-    patterns[store banks] = {
-      appearances: 1,
-      cycle: 0
-    }
+    patterns[store banks] = cycles
   end
 
   def cycle!
-    index, blocks = pick_starting_bank
+    while true
+      index, blocks = banks.max_by { |k,v| [v,-k] }
+      banks[index] = 0
+      blocks.times do |block|
+        nb = banks[index + 1] ? index + 1 : 0
+        banks[nb] += 1
+        index = nb
+      end
 
-    banks[index] = 0
-    blocks.times do |block|
-      nb = next_bank index
-      banks[nb] += 1
-      index = nb
-    end
-
-    @cycles += 1
-    new_pattern = store banks
-    stats = patterns.fetch(new_pattern, { appearances: 0, cycle: cycles })
-    appearances = stats[:appearances] + 1
-
-    if appearances > 1
-      stats.merge({ last_cycle: cycles })
-    else
-      patterns[new_pattern] = {
-        appearances: appearances,
-        cycle: cycles
-      }
-      cycle!
+      @cycles += 1
+      new_pattern = store banks
+      if patterns[new_pattern]
+        return { pattern: new_pattern, start: patterns[new_pattern], end: cycles }
+      else
+        patterns[new_pattern] = cycles
+      end
     end
   end
 
   private
-  def pick_starting_bank
-    banks.max_by { |k,v| [v,-k] }
-  end
-
-  def next_bank(index)
-    banks[index + 1] ? index + 1 : 0
-  end
-
   def prep_banks(banks)
     banks.each_with_index.reduce({}) { |acc, (v, i)| acc[i] = v; acc }
   end
