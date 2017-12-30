@@ -38,17 +38,13 @@ module Pipes
     end
 
     def connect!(connections = [@connections[BASE_CONNECTOR]])
-      connections.each { |connection| connection.connect! }
-
-      connectable = connections.reduce([]) do |list, connection|
-        list << connection.connections if connection.connected?
-      end
-
-      # reject anything that's already connected
-      # recurse if there's more to connect
-      connectable.flatten!
-      connectable.reject!(&:connected?)
+      connections.each &:connect!
+      connectable = connections.map(&:connections).flatten.reject(&:connected?)
       connect!(connectable) unless connectable.empty?
+    end
+
+    def reject_connected!
+      connections.reject! { |_key, conn| conn.connected? }
     end
 
     def self.build_from_file(path)
@@ -59,10 +55,24 @@ module Pipes
   end
 end
 
-test_piper = Pipes::Piper.build_from_file('test')
-test_piper.connect!
-p test_piper.connections.select { |key, conn| conn.connected? }.count
+# ---part 1---
+# test_piper = Pipes::Piper.build_from_file('test')
+# test_piper.connect!
+# p test_piper.connections.select { |key, conn| conn.connected? }.count
 
+# input_piper = Pipes::Piper.build_from_file('input')
+# input_piper.connect!
+# p input_piper.connections.select { |key, conn| conn.connected? }.count
+
+# ---part 2---
 input_piper = Pipes::Piper.build_from_file('input')
-input_piper.connect!
-p input_piper.connections.select { |key, conn| conn.connected? }.count
+groups = 0
+
+until input_piper.connections.empty?
+  _key, connector = input_piper.connections.first
+  input_piper.connect!([connector])
+  groups += 1
+  input_piper.reject_connected!
+end
+
+p "Found #{groups} groups."
